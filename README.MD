@@ -197,13 +197,72 @@ For more details about the code check out the underlying [README.MD file](./src/
 
 ## Implement the Workload Identity features // TODO
 
-### Step 1 
+### Step 1 Apply Conditional Access policy to service principal
+This will generate a Conditional Access policy that will restrict access to the service account based on location, whenever it is outside of the trusted locations.
+1.	Sign in to the Entra Portal as a Global, Security or Conditional Access administrator
+2.	Browse to Azure Active Directory - Protect & secure - Conditional Access.
+3.	To create a Trusted Location:  Under Manage - Named locations - IP ranges location.
+•	Choose a Name for the trusted location - DotnetDemo.
+•	Select Mark as trusted location.
+•	Choose the + sign, and enter a new IPv4 or IPv6 range.*
+ 
+(Administrators can name locations defined by IP address ranges to be trusted named locations. To know more: Location condition in Azure Active Directory Conditional Access - Microsoft Entra | Microsoft Docs)
+4.	Select + New Policy - Create new policy.
+•	Enter a name for the policy - example: WId Dotnet Demo CA.
+•	Under Assignments - What does this policy apply to? Choose Workload identities (preview).
+•	Include - Select service principals.
+•	Search for workloadIdentityDotnetDemo previously generated, and Select.
+ 
+•	In the Cloud apps or actions section, choose All cloud apps. (It is not possible to select individual cloud apps at this moment).
+•	Conditions section - Select Locations - Configure: Yes - Include: All trusted locations.
+•	Access control will setup the Grant enforcement to Block automatically.
+•	Enable Policy - set to On, and Create.
+ 
+Now if the Service Principal tries to retrieve data from MS Graph, for our demo application, when outside of the trusted locations, the access will be blocked.
 
-### Step 2
+*For this dem IP range can be the IP the device is currently using, or the application will not work, since the Service Principal access will be blocked.
 
-### Step 3
+### Step 2 Secure Workload Identities with Identity Protection
+Organizations can find workload identities that have been flagged for risk in one of two locations:
+ 
+1.	Navigate to the Entra admin center.
+2.	Browse to Azure Active Directory - Protect & Secure - Identity Protection - Risky workload identities (preview).
+ 
+ 
+Workload Identities risk level is based on sign-in behavior and offline indicator of compromise, for example leaked credentials and suspicious sign in. For a complete list of detections: Workload identity risk detections
+ 
+Risk level can also be applied to a Conditional Access policy, where access can be blocked to the Service Principal, based on Risk level, with the instructions below:
 
-etc
+1.	Browse to Azure Active Directory - Protect & secure - Conditional Access.
+2.	Select the previously created Conditional Access policy – Wid Dotnet Demo.
+3.	Selection Conditions – Service Principal risk (Preview). Toggle Yes in the Configure option.
+4.	Configure risk level – High.
+5.	Click Save.
+ 
+
+### Step 3 Create access review of an Azure AD role for the service principal
+
+For this part, the recently created Service Principal need to have an Azure AD role assigned, that can be done by following these steps:
+ 
+1.	Navigate to the Azure portal - search for Azure AD Roles and administrators.
+2.	Search for Global Administrator role - Add assignments.
+3.	Select Members - type workloadIdentityDotnetDemo.
+4.	Click next.
+ 
+Access reviews can remove access, approve access, and take recommendations.
+ 
+1.	Sign in to the Entra portal.
+2.	Navigate to Azure Active Directory - Identity Governance - Privilege Identity Management.
+3.	Under Manage select Azure AD Roles - Access Reviews - New.
+•	Name the access review - example Dotnet demo review.
+•	Set the start date, frequency (for the review to happen periodically), and end date. For scope - select (Preview Service Principals). Role - select Global Administrator.
+•	Expand the Upon completion settings section. If reviewers don't respond: No Approve Access. At the end of review, send notification to: Select the user you are currently using.
+•	Click on Start.
+ 
+It can take some minutes to finish, and will send notification to the current user.
+ 
+
+
 
 ------------------------------------------------
 ## Next Steps // TODO
